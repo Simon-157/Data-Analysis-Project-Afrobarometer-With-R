@@ -1,0 +1,554 @@
+---
+title: "FINAL DATA ANALYSIS PROJECT"
+author: "Simon Boateng"
+date: "29/03/2022"
+output: word_document
+---
+
+
+
+```{r setup, include=FALSE}
+
+
+```
+
+### RESEARCH QUESTIONS
+a. Is people's support for democracy associated with their satisfaction with democracy?
+
+  **Response Variable:** Satisfaction with democracy
+  
+  **Explanatory Variable:** Support for democracy
+  
+  
+a. Does the extent of democracy in Ghana affects the freedom of the people to speak 
+out their minds? 
+
+  **Response Variable:** The freedom of the people to speak out their minds
+  
+  **Explanatory Variable:** Extent of democracy in Ghana
+  
+
+a. Does government accountability to the citizens of an African country affects how 
+the people accord or respect the government? 
+  **Response Variable**: Government accountability to the citizens of an African country
+  **Explanatory Variable**: How the people accord or respect the government
+
+
+
+a. Is the existence of multiparty system in Africa associated with the emergence of conflicts during 
+democratic processes? 
+  Response Variable: Existence of multiparty system in Africa
+  Explanatory Variable: The emergence of conflicts during democratic processes
+  
+
+
+
+# 1. Load data set(s) and libraries
+```{r}
+
+load("AfrobarometerMerged.Rdata")   
+library(descr) 
+
+
+```
+
+
+
+
+
+## 2. Create variable subset
+```{r}
+vars <- c("COUNTRY","Q14", "Q28", "Q27C", "Q35", "Q36", "Q37", "Q29", "Q30", "Q31") 
+research_data <- AfrobarometerMerged[vars]
+#write.table(my_data, file = "filename.txt", sep = "\t", row.names = FALSE)
+save(research_data, file="my_data.RDATA")
+
+#str(my_data)
+my_newData <- as.data.frame(research_data)
+
+
+
+```
+
+
+
+
+
+## 3. Data management I: check for and recode errors and NAs
+```{r}
+
+colors <- c("Blue", "Green", "Orange", "red")
+#DEALING WITH THE PEOPLE'S SATISFACTION FOR DEMOCRACY
+freq(my_newData$Q36)
+my_newData$Q36[my_newData$Q36 == "Missing" | my_newData$Q36 == "Refused" |  my_newData$Q36 == "Do not know" ] <- NA
+
+freq(my_newData$Q36)
+
+
+
+
+#DEALING WITH PEOPLE'S SUPPORT FOR DEMOCRACY, Q28
+freq(my_newData$Q28)
+my_newData$Q28[my_newData$Q28 == "Missing" | my_newData$Q28 == "Don't know" | my_newData$Q28 == "Refused"] <- NA
+newQ28 <- factor(my_newData$Q28)
+freq(newQ28, col= colors)
+
+
+#DEALING WITH VARIABLE Q35, EXTENT OF DEMOCRACY
+freq(my_newData$Q35)
+my_newData$Q35[my_newData$Q35 == "Do not understand question / democracy" | my_newData$Q35 == "Don't know" | my_newData$Q35 == "Refused"] <- NA
+my_newData$Q35<- factor(my_newData$Q35)
+freq(my_newData$Q35, col= colors)
+
+
+
+
+#DEALING WITH VARIABLE Q14,Freedom to say what you think 
+freq(my_newData$Q14)
+my_newData$Q14[my_newData$Q14 == "Missing" | my_newData$Q14 == "Don’t know" | my_newData$Q14 == "Refused"] <- NA
+my_newData$Q14<- factor(my_newData$Q14)
+freq(my_newData$Q14, col= colors)
+
+
+
+# DEALING WITH VARIABLE Q29,Govt gets things done vs. Govt accountable to citizens 
+freq(my_newData$Q29)
+my_newData$Q29[my_newData$Q29 == "Missing" | my_newData$Q29 == "Don't know" | my_newData$Q29 == "Refused"] <- NA
+my_newData$Q29<- factor(my_newData$Q29)
+freq(my_newData$Q29, col= colors)
+
+
+
+
+#DEALING WITH VARIABLE Q31, MANY PARTY CREATES DIVIVSION VRS MANY PARTIES ARE NEEDED
+freq(my_newData$Q31)
+my_newData$Q31[my_newData$Q31 == "Missing" | my_newData$Q31 == "Don't know" | my_newData$Q31 == "Refused"] <- NA
+freq(factor(my_newData$Q31))
+
+```
+
+
+
+
+
+
+## 4. Data management II: further subset and create secondary variable
+```{r}
+colors <- c("Blue", "Green", "red")
+
+
+##Subsetting and creating secondary variables for Q36, Satisfaction with democracy
+my_newData$Satisfaction <- rep(NA, nrow(my_newData))
+my_newData$Satisfaction[my_newData$Q36 == "The country is not a democracy"] <- "Not democratic"
+my_newData$Satisfaction[my_newData$Q36 == "Not very satisfied" | my_newData$Q36 == "Not at all satisfied"] <- "Not satisfied"
+my_newData$Satisfaction[my_newData$Q36 == "Fairly satisfied" | my_newData$Q36 == "very satisfied"] <- "Satisfied"
+freq(my_newData$Satisfaction, ylab="Number of People",main = "A Graph of People's \nSatisfaction With Democracy",col=colors, ylim=c(0, 25000))
+
+
+
+##Subsetting and creating secondary variables for Q28,Support for democracy
+my_newData$Support_For_Democracy <- rep(NA, nrow(my_newData))
+my_newData$Support_For_Democracy[my_newData$Q28 == "STATEMENT 1: Democracy preferable"] <- "Democracy Preferable"
+my_newData$Support_For_Democracy[my_newData$Q28 == "STATEMENT 2: Sometimes non-democratic preferable"] <- "non-democratic preferable "
+my_newData$Support_For_Democracy[my_newData$Q28 == "STATEMENT 3: Doesn't matter"] <- "Doesn't matter"
+
+freq(my_newData$Support_For_Democracy, ylab="Number of People",main = "A Graph of People's \nSupport for Democracy",col=colors, ylim=c(0, 35000))
+
+
+
+##Subsetting and creating secondary variables for Q35,Extent of democracy
+my_newData$Extent_of_Democracy <- rep(NA, nrow(my_newData))
+
+my_newData$Extent_of_Democracy[my_newData$Q35 == "A democracy, with major problems"] <- "A democracy, with major problems "
+my_newData$Extent_of_Democracy[my_newData$Q35 == "A democracy, but with minor problems"] <- "A democracy, but with minor problems"
+my_newData$Extent_of_Democracy[my_newData$Q35 == "A full democracy"] <- "A full democracy"
+
+freq(
+  my_newData$Extent_of_Democracy, 
+  ylab="Number of People",
+  names=c("Democracy with minor problems", "Democracy with major problems", "A full democracy"),
+  main = "A Graph of Extent of Democracy\n In African Countries",
+  col=colors, 
+  ylim=c(0, 20000),
+  cex.names = 0.53,
+  las=1
+  )
+
+
+##Subsetting and creating secondary variables for Q29,Govt gets things done vs. Govt accountable to citizens 
+my_newData$Government_Accountable <- rep(NA, nrow(my_newData))
+my_newData$Government_Accountable[my_newData$Q29 == "Agree very strongly with 1" | my_newData$Q29 == "Agree with 1"] <- "Agree with 1"
+my_newData$Government_Accountable[my_newData$Q29 == "Agree very strongly with 2" | my_newData$Q29 == "Agree with 2"] <- "Agree with 2"
+my_newData$Government_Accountable[my_newData$Q29 == "Agree with neither"] <- "Agree with neither"
+
+freq(
+  my_newData$Government_Accountable, 
+  col=colors,
+  ylim = c(0,30000),
+  ylab="Number of People",
+  main="A Graph of Govt Gets Things Done vrs\n Govt Accountable to Citizens"
+  )
+
+```
+
+
+
+
+
+## 5. Descriptive statistics (sample means, standard deviations, proportions) and univariate displays
+```{r}
+GHANA_DATASET <- my_newData[my_newData$COUNTRY == "Ghana",]
+GHANA_DATASET$Satisfaction[GHANA_DATASET$Satisfaction == "Not democratic"] <- NA
+colors <- c("Blue", "Green", "Orange", "red")
+
+
+#Univariate graph and descriptive statistics(proportion) for variable Q36, people statisfaction for democracy
+prop.table(table(GHANA_DATASET$Satisfaction))
+
+freq(as.ordered(GHANA_DATASET$Satisfaction), main="A Graph of Percentages of Ghanaian's \nSatisfaction With Democracy", names=c("Not satisfied", "Satisfied "), y.axis="percent", ylab="Valid percentages",xlab="People Satisfaction for Democracy",col=colors, ylim=c(0, 75), cex.names = 0.85 ) 
+
+
+
+#Univariate graph and descriptive statistics(proportion) forvariable Q28, people support for democracy
+prop.table(table(GHANA_DATASET$Support_For_Democracy))
+
+freq(as.ordered(GHANA_DATASET$Support_For_Democracy), main="A Graph of Percentages of Ghanaian's \n Support With Democracy", names=c("Democracy preferable", "Doesn't matter", "non-democratic preferable"), y.axis="percent", ylab="Valid percentages",xlab="People Support for Democracy",col=colors, ylim=c(0, 100), cex.names = 0.85 ) 
+
+
+#Univariate graph and descriptive statistics(proportion) for variable Q35, Extent of democracy 
+prop.table(table(GHANA_DATASET$Extent_of_Democracy))
+
+freq(as.ordered(GHANA_DATASET$Extent_of_Democracy), main="A Graph of Proportions of Extent of Democracy", names=c("Democracy With Minor Problems", "Democracy With Major Problems", "Full Democracy"), y.axis="percent", ylab="Valid percentages",col=colors, ylim=c(0, 50), cex.names = 0.70 ) 
+
+
+#Univariate graph and descriptive statistics(proportion) for variable Q14, Freedom of people to say what they think
+prop.table(table(GHANA_DATASET$Q14))
+
+freq(as.ordered(GHANA_DATASET$Q14), main="A Graph of Proportions of Freedom of\n People to say they think", names=c("Not at all free", "Not very free","Somewhat free", "Completely free"), y.axis="percent", ylab="Valid percentages",col=colors, ylim=c(0, 80), cex.names = 0.70 )
+
+
+
+#Univariate graph and descriptive statistics(proportion) for variable Q29, Govt gets things done vs. Govt accountable to citizens 
+prop.table(table(GHANA_DATASET$Government_Accountable))
+
+freq(as.ordered(GHANA_DATASET$Government_Accountable), main="A Graph of Proportions of Govt gets things done vs. \nGovt accountable to citizens", names=c("Agree with 1", "Agree with 2","Agree with neither"), y.axis="percent", ylab="Valid percentages",col=colors, ylim=c(0, 80), cex.names = 0.60 )
+
+
+
+```
+
+
+
+
+
+## 6. Bivariate tables and graphs
+```{r echo = TRUE }
+##### WORKING FOR RESEARCH QUESTION 1
+
+#descriptive statistics for Q28 and Q36, Satisfaction for democracy
+tableQ <- table(GHANA_DATASET$Satisfaction, GHANA_DATASET$Support_For_Democracy)
+tableQ
+column_proportion_ass1 <- round(prop.table(tableQ, 2),3)*100;column_proportion_ass1
+
+#Grouped barplot for Q28 and Q36, Satisfaction for democracy
+barplot(
+  column_proportion_ass1, 
+  beside=TRUE, 
+  las = 1,
+  ylab="Proportion Percentages(%)",
+  main="A Grouped barplot of Proportion of People's\n Satisfaction With Democracy", 
+  ylim = c(0, 80), 
+  col=c("blue", "green"),
+  cex.axis = 0.65, 
+  cex.names = 0.65,
+  names=c("Democracy Preferred", "Doesn't Matter", "Non-Democratic Preferred"),
+  legend.text=TRUE, args.legend = list(x="topright", inset = c(-0.05,-0.05))
+  )
+
+
+
+
+
+##### WORKING FOR RESEARCH QUESTION 2
+
+
+#descriptive statistics for Q35 and Q14, Extent of Democracy and Freedom of the people to say what they think
+table_ass2 <- table(GHANA_DATASET$Q14, GHANA_DATASET$Extent_of_Democracy)
+table_ass2
+column_proportion_ass2 <- round(prop.table(table_ass2, 2),3)*100;column_proportion_ass2
+bar_labels = round(addmargins(column_proportion_ass2),1);bar_labels
+#Grouped barplot for Q35 and Q14, Extent of Democracy and Freedom of the people to say what they think
+barplot2 <- barplot(
+  column_proportion_ass2, 
+  beside=TRUE, 
+  las = 1,
+  ylab="Proportion Percentages(%)",
+  xlab = "Extent of Democracy",
+  main="A Grouped barplot for the Relationship Between Extent of Democracy \nin Ghana and the People's Freedom of speech",
+  ylim = c(0, 80), 
+  col=c("blue", "green", "red", "orange"),
+  cex.axis = 0.75, 
+  cex.names = 0.70,
+  names=c("Democracy with minor problems", "Democracy with major problems", "Full Democracy") ,
+  legend.text = TRUE, 
+  args.legend = list(x = "topright",inset = c(- 0.15, 0))
+    
+  )
+
+
+
+
+```
+
+     
+**SUMMARY**\n
+
+
+*Research Question 1*\n
+
+
+Through cleaning and managing the data set for my research questions, the associations between the variables for each of the research questions seems to have a little talk about before the hypothesis testing for more reliable conclusion to be made. With the research question 1 (Is people's support for democracy associated with their satisfaction with democracy), taking Ghana as the focused country, there was 24.9% people who showed their support for democracy but were not satisfied with the way democracy is run in Ghana. 75.1% of the people who supported democracy were satisfied with the way democracy runs in Ghana. Nonetheless, about 48.8 percent of those who were not satisfied with the runs of democracy in Ghana preferred non-democratic governance as to democracy. In the same way, 51.2 % of the people who were satisfied with the runs of democracy in Ghana did not preferred democracy in Ghana.
+From the bivariate barplot of the response variable against the explanatory variable; it appears that most of the people who preferred democracy were more satisfied with the way democracy runs in the country than the proportion who preferred democracy but were not satisfied with it.
+
+
+
+*Research Question 2*
+
+For research Question 2 (Does the extent of democracy in Ghana affects the freedom of the people to speak 
+out their minds? ), the focus was on the African countries involved in the data set. 73.7 % of the people who lived in a country with a full running democracy was of the view that they are completely free ofr saying what they think at anytime(freedom of speech). 42.1 percent of the people who do no tlive in a democratic countries were completely free to speak out their mind at any time. Just 3.6% of the people in a full democratic countries said there were not at all free to speak out their minds while 21.1% of the people who were not in democratic countries said they were not at all free to speak out their minds.
+From the bivariate graph of the response variable(The freedom of the people to speak out their minds) against the explanatory variable(Extent of democracy in Ghana), people in democratic countries with minor problems or major problems or with no problems had greater proportion of being completely free to speak out their mind(freedom of speech).
+
+
+
+
+## 7. Bivariate analysis (hypothesis tests and post-hoc tests)
+```{r}
+#Hypothesis testing for research question1, Is people's support for democracy associated with their satisfaction with democracy? 
+
+chisq_test_1 <- chisq.test(tableQ)
+chisq_test_1
+
+chisq_test_1$observed
+chisq_test_1$expected
+chisq_test_1$residuals
+
+
+
+# POST HOC TESTING FOR RESEARCH QUESTION 1, Is people's support for democracy associated with their satisfaction with democracy? 
+research_q1_subsetA <- subset(GHANA_DATASET, Support_For_Democracy == "Democracy Preferable" | Support_For_Democracy == "Doesn't matter")
+#pair-wise chi-square for explanatory categories 1 and 2
+chisq_test_1_2 <- chisq.test(research_q1_subsetA$Satisfaction, research_q1_subsetA$Support_For_Democracy)
+chisq_test_1_2
+
+
+research_q1_subsetB <- subset(GHANA_DATASET, Support_For_Democracy == "Democracy Preferable" | Support_For_Democracy == "non-democratic preferable ")
+#pair-wise chi-square for explanatory categories 1 and 3
+chisq_test_1_3<- chisq.test(research_q1_subsetB$Satisfaction, research_q1_subsetB$Support_For_Democracy)
+chisq_test_1_3
+
+
+research_q1_subsetC <- subset(GHANA_DATASET, Support_For_Democracy == "non-democratic preferable "|Support_For_Democracy == "Doesn't matter")
+#pair-wise chi-square for explanatory categories 2 and 3
+chisq_test_2_3 <- chisq.test(research_q1_subsetC$Satisfaction, research_q1_subsetC$Support_For_Democracy)
+chisq_test_2_3
+
+
+
+
+# Hypothesis testing for research question 2
+chisq_test_2 <- chisq.test(GHANA_DATASET$Q14, GHANA_DATASET$Extent_of_Democracy)
+chisq_test_2
+
+chisq_test_2$observed
+chisq_test_2$expected
+chisq_test_2$residuals
+
+
+#POST HOC TESTING FOR RESEARCH QUESTION 2
+research_q2_subsetA <- subset(GHANA_DATASET, Extent_of_Democracy == "A democracy, but with minor problems" | Extent_of_Democracy == "A democracy, with major problems ")
+#pair-wise chi-square for explanatory categories 1 and 2
+q2_chisq_test_1_2 <- chisq.test(research_q2_subsetA$Q14, research_q2_subsetA$Extent_of_Democracy)
+q2_chisq_test_1_2
+
+
+
+research_q2_subsetB <- subset(GHANA_DATASET, Extent_of_Democracy == "A democracy, but with minor problems" | Extent_of_Democracy == "A full democracy")
+#pair-wise chi-square for explanatory categories 1 and 2
+q2_chisq_test_1_3 <- chisq.test(research_q2_subsetB$Q14, research_q2_subsetB$Extent_of_Democracy)
+q2_chisq_test_1_3
+
+
+#research_q2_subsetC <- subset(GHANA_DATASET, Extent_of_Democracy == "A democracy, but with minor problems" | Extent_of_Democracy == "Not a democracy")
+#pair-wise chi-square for explanatory categories 1 and 2
+#q2_chisq_test_1_4 <- chisq.test(research_q2_subsetC$Q14, research_q2_subsetC$Extent_of_Democracy)
+#q2_chisq_test_1_4
+
+
+research_q2_subsetD <- subset(GHANA_DATASET, Extent_of_Democracy == "A democracy, with major problems " | Extent_of_Democracy == "A full democracy")
+#pair-wise chi-square for explanatory categories 1 and 2
+q2_chisq_test_1_5 <- chisq.test(research_q2_subsetD$Q14, research_q2_subsetD$Extent_of_Democracy)
+q2_chisq_test_1_5
+
+
+#research_q2_subsetE <- subset(GHANA_DATASET, Extent_of_Democracy == "A democracy, with major problems " | Extent_of_Democracy == "Not a democracy")
+#pair-wise chi-square for explanatory categories 1 and 2
+#q2_chisq_test_1_6 <- chisq.test(research_q2_subsetE$Q14, research_q2_subsetE$Extent_of_Democracy)
+#q2_chisq_test_1_6
+
+
+#research_q2_subsetF <- subset(GHANA_DATASET, Extent_of_Democracy == "A full democracy" | Extent_of_Democracy == "Not a democracy")
+#pair-wise chi-square for explanatory categories 1 and 2
+#q2_chisq_test_1_7 <- chisq.test(research_q2_subsetF$Q14, research_q2_subsetF$Extent_of_Democracy)
+#q2_chisq_test_1_7
+
+
+
+
+
+```
+
+**STEPS FOR HYPOTHESIS TESTING FOR RESEARCH QUESTION 1**
+
+
+*STEP 1* : _Stating the claims_ 
+
+*null-Hypothesis*: There is no relationship between people support for democracy in a country and their Satisfaction with democracy in the country
+
+*alternative-Hypothesis*: There is a relationship between people support for democracy in a country and their Satisfaction with democracy in the country
+
+
+*STEP 2*  _Collect and summarize the sample_
+
+#### Sample proportions for each of the categories of the explanatory variable (Extent of Democracy) 
+Democracy Preferable: 24.9, 75.1, 
+Doesn't matter : 47.8, 52.2, 
+Non-demcratic Preferable: 48.8, 51.2, 
+
+### Sample size (counts) for each category of the explanatory variable
+Counts for Democracy Preferable: `r (302 + 912)`
+Counts for Doesn't matter: `r (43 + 47)`
+Counts for Non-democratic Preferable: `r (117 + 123)`
+
+
+
+#### Conditions under Which the Chi-Square Test Can Safely Be Used
+a. The sample was random .
+
+b. All the expected counts were greater than 1 and more than 80% (almost all) of the expected counts were greater than 5
+
+
+
+
+
+*STEP 3* _Assessing the evidence_
+
+X-squared = 68.997         `#chisq-test value`
+
+df = 2,                       `#degree of freedom`
+
+p-value = 1.041e-15        `# p-value for the test`
+
+
+
+*STEP 4* _Making a Conclusion_
+
+In conclusion, applying a decision rule based on  𝛼 = 0.05, the calculated p-value (1.041e-15) for the data is less than 0.05; therefore, the null hypothesis (There is no relationship between people support for democracy in a country and their Satisfaction with democracy in the country) should be rejected and the conclusion drawn that there is a relationship between people support for democracy in a country and their Satisfaction with democracy in the country.
+
+There is a possibility of ***Type 1 error*** since the null hypothesis was rejected.
+
+
+
+
+
+**STEPS FOR HYPOTHESIS TESTING FOR RESEARCH QUESTION 2**
+
+
+*STEP 1* : _Stating the claims_ 
+
+*null-Hypothesis*: There is no relationship between the extent of democracy in a country and the freedom of the people to speak out their minds.
+
+*alternative-Hypothesis*: There is a relationship between the extent of democracy in a country and the freedom of the people to speak out their minds.2
+
+
+*STEP 2*  _Collect and summarize the sample_
+
+#### Sample proportions for each of the categories of the explanatory variable (Extent of Democracy) 
+A democracy, but with minor problems : 2.6 , 8.8, 21.2, 67.6
+A democracy, with major problems: 3.7, 9.7, 23.4, 63.3
+A full democracy Not a democracy: 3.6, 6.6, 16.5, 73.4
+Not a democracy: 20.0, 30.0, 5.0, 45.0
+
+
+
+### Sample size (counts) for each category of the explanatory variable
+Counts for A democracy, but with minor problems: `r (27 + 92 + 220 + 706)`
+Counts for A democracy, with major problems: `r (14 + 37 + 89 + 241) `
+Counts for A full democracy Not a democracy: `r (31 + 57 + 143 + 638)`
+Counts for Not a democracy: `r (4 + 6 + 1 + 9)`
+
+
+
+
+#### Conditions under Which the Chi-Square Test Can Safely Be Used
+a. The sample was random .
+
+b. All the expected counts were greater than 1 and more than 80% (almost all) of the expected counts were greater than 5
+
+
+
+
+
+*STEP 3* _Assess the evidence_
+
+X-squared = 51.456           `#chisq-test value`
+
+df = 9,                       `#degree of freedom`
+
+p-value = 5.728e-08           `# p-value for the test`
+
+
+
+*STEP 4* _Making a Conclusion_
+
+In conclusion, applying a decision rule based on  𝛼 = 0.05, the calculated p-value (5.728e-08 ) for the data is less than 0.05; therefore, the null hypothesis (There is no relationship between the extent of democracy in a country and the freedom of the people to speak out their minds) should be rejected and the conclusion drawn that there is a relationship between the extent of democracy in a country and the freedom of the people speak out their minds. 
+There is a possibility of ***Type 1 error*** since the null hypothesis was rejected.
+
+
+
+
+
+
+## SUMMARY
+Through graphing for each of the categorical response and explanatory variables and bivariate graphing of the two variables with summary statistics (sample proportions) for the research question ***"Is people's support for democracy associated with their satisfaction with democracy? "***, it was revealed that , the null hypothesis was rejected and derived that there is a relationship between people support for democracy in a country and their Satisfaction with democracy in the country, since the p-value was less than 0.05 (using a significance level of 𝛼 = 0.05). A further test analysis was down with a post hoc test for each of the levels of the categorical explanatory variable (people's support for democracy). The inference from the post hoc test was that two of the pairwise test for the 3 levels did not provide a statistically significant impact on the overall p-value since each of them was still less than 0.05. However the pairwise test for the levels *non-democratic preferable* and *Doesn't matter* provided a significantly large p-value of ***0.9731*** which is greater than 0.05 significant level. But then it could be due to the comparably *small sample size (Counts)* for the level ***Doesn't matter*** 
+
+For research question 2, ***"Does the extent of democracy in Ghana affects the freedom of the people to speak out their minds"***, the outcome from the hypothesis testing was that the null hypothesis was to be rejected since the p-value of 5.728e-08 was less than the 0.05 significance level and hence provided enough evidence to reject the null hypothesis. Further post hoc test on each of the levels of the explanatory variable (*Extent of democracy in Ghana*) gave p-values which were not significantly different from the general p-value.
+
+
+
+
+
+
+
+## 8. Moderation
+```{r}
+
+
+
+```
+
+
+
+
+
+## 9. Save
+```{r}
+
+
+
+```
+
+
+
+
+
+
